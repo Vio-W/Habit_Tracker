@@ -20,6 +20,7 @@ export default function HabitList({ userId, habits, setHabits }) {
   const [editingId, setEditingId] = useState(null)
   const [editName, setEditName] = useState('')
   const [editDescription, setEditDescription] = useState('')
+  const [shareState, setShareState] = useState('')
 
   async function handleAdd(e) {
     e.preventDefault()
@@ -82,21 +83,55 @@ export default function HabitList({ userId, habits, setHabits }) {
     }
   }
 
+  async function handleShare() {
+    const shareText = habits
+      .filter((habit) => habit.is_active)
+      .map((habit) => `• ${habit.name}${habit.description ? ` — ${habit.description}` : ''}`)
+      .join('\n') || 'No active habits yet.'
+
+    try {
+      if (navigator.share) {
+        await navigator.share({ title: 'My Habit Tracker', text: shareText })
+        setShareState('Shared')
+        return
+      }
+
+      if (navigator.clipboard && navigator.clipboard.writeText) {
+        await navigator.clipboard.writeText(shareText)
+        setShareState('Copied to clipboard')
+        return
+      }
+
+      setShareState('Share unavailable on this device')
+    } catch {
+      setShareState('Share cancelled')
+    }
+  }
+
   return (
     <div>
-      <form onSubmit={handleAdd} style={{ display: 'grid', gap: '0.5rem', margin: '1.5rem 0' }}>
+      <div className="app-toolbar">
+        <button type="button" className="btn-secondary" onClick={handleShare}>
+          Share
+        </button>
+        {shareState && <span className="share-status">{shareState}</span>}
+      </div>
+
+      <form onSubmit={handleAdd} className="habit-form">
         <input
+          aria-label="New habit name"
           placeholder="New habit name"
           value={newName}
           onChange={(e) => setNewName(e.target.value)}
           required
         />
         <input
+          aria-label="Habit description"
           placeholder="Description (optional)"
           value={newDescription}
           onChange={(e) => setNewDescription(e.target.value)}
         />
-        <button type="submit" disabled={adding}>
+        <button type="submit" className="btn-primary" disabled={adding}>
           {adding ? 'Adding…' : 'Add habit'}
         </button>
       </form>
@@ -106,41 +141,30 @@ export default function HabitList({ userId, habits, setHabits }) {
       {habits.length === 0 ? (
         <p>No habits yet — add your first one above.</p>
       ) : (
-        <ul style={{ listStyle: 'none', padding: 0, display: 'grid', gap: '0.75rem' }}>
+        <ul className="habit-list">
           {habits.map((habit) => (
-            <li
-              key={habit.id}
-              style={{
-                border: '1px solid #ddd',
-                borderRadius: 8,
-                padding: '0.75rem 1rem',
-                opacity: habit.is_active ? 1 : 0.5,
-              }}
-            >
+            <li key={habit.id} className={`habit-item ${habit.is_active ? '' : 'paused'}`}>
               {editingId === habit.id ? (
-                <div style={{ display: 'grid', gap: '0.5rem' }}>
-                  <input value={editName} onChange={(e) => setEditName(e.target.value)} />
-                  <input
-                    value={editDescription}
-                    onChange={(e) => setEditDescription(e.target.value)}
-                  />
-                  <div style={{ display: 'flex', gap: '0.5rem' }}>
-                    <button onClick={() => saveEdit(habit.id)}>Save</button>
-                    <button onClick={() => setEditingId(null)}>Cancel</button>
+                <div className="habit-edit-form">
+                  <input aria-label="Edit habit name" value={editName} onChange={(e) => setEditName(e.target.value)} />
+                  <input aria-label="Edit habit description" value={editDescription} onChange={(e) => setEditDescription(e.target.value)} />
+                  <div className="habit-actions">
+                    <button onClick={() => saveEdit(habit.id)} className="btn-primary">Save</button>
+                    <button onClick={() => setEditingId(null)} className="btn-secondary">Cancel</button>
                   </div>
                 </div>
               ) : (
-                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-                  <div>
+                <div className="habit-card">
+                  <div className="habit-copy">
                     <strong>{habit.name}</strong>
-                    {habit.description && <p style={{ margin: '0.25rem 0 0', color: '#555' }}>{habit.description}</p>}
+                    {habit.description && <p>{habit.description}</p>}
                   </div>
-                  <div style={{ display: 'flex', gap: '0.5rem' }}>
-                    <button onClick={() => handleToggle(habit)}>
+                  <div className="habit-actions">
+                    <button onClick={() => handleToggle(habit)} className="btn-secondary">
                       {habit.is_active ? 'Active' : 'Paused'}
                     </button>
-                    <button onClick={() => startEdit(habit)}>Edit</button>
-                    <button onClick={() => handleDelete(habit.id)}>Delete</button>
+                    <button onClick={() => startEdit(habit)} className="btn-secondary">Edit</button>
+                    <button onClick={() => handleDelete(habit.id)} className="btn-secondary">Delete</button>
                   </div>
                 </div>
               )}

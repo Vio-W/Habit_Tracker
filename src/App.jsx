@@ -3,6 +3,7 @@ import { AuthProvider } from './context/AuthContext'
 import ProtectedRoute from './components/ProtectedRoute'
 import Login from './pages/Login'
 import HabitTracker from './pages/HabitTracker'
+import UpdateToast from './components/UpdateToast'
 
 export default function App() {
   return (
@@ -19,6 +20,7 @@ export default function App() {
             }
           />
         </Routes>
+        <UpdateToast />
       </BrowserRouter>
     </AuthProvider>
   )
