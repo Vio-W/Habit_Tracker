@@ -82,7 +82,14 @@ export default function AvatarUploader({ userId }) {
         {loading ? (
           <span style={{ fontSize: 12, color: '#999' }}>…</span>
         ) : displayUrl ? (
-          <img src={displayUrl} alt="Avatar" style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
+          <img
+            src={displayUrl}
+            alt="Avatar"
+            loading="lazy"
+            width={64}
+            height={64}
+            style={{ width: '100%', height: '100%', objectFit: 'cover' }}
+          />
         ) : (
           <span style={{ fontSize: 12, color: '#999' }}>No photo</span>
         )}

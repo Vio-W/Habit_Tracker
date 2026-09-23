@@ -1,9 +1,11 @@
+import { Suspense, lazy } from 'react'
 import { BrowserRouter, Routes, Route } from 'react-router-dom'
 import { AuthProvider } from './context/AuthContext'
 import ProtectedRoute from './components/ProtectedRoute'
 import Login from './pages/Login'
-import HabitTracker from './pages/HabitTracker'
 import UpdateToast from './components/UpdateToast'
+
+const HabitTracker = lazy(() => import('./pages/HabitTracker'))
 
 export default function App() {
   return (
@@ -15,7 +17,9 @@ export default function App() {
             path="/"
             element={
               <ProtectedRoute>
-                <HabitTracker />
+                <Suspense fallback={<div style={{ padding: '1rem', textAlign: 'center' }}>Loading habits…</div>}>
+                  <HabitTracker />
+                </Suspense>
               </ProtectedRoute>
             }
           />
